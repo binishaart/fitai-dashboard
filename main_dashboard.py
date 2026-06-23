@@ -419,6 +419,8 @@ elif menu == "🥗  Diet Coach":
 
     content_start()
 
+    st.subheader("🥗 AI Dietician & Calorie Coach")
+
     if "diet_step" not in st.session_state:
         st.session_state.diet_step = 1
 
@@ -434,14 +436,13 @@ elif menu == "🥗  Diet Coach":
     # STEP 1
     if st.session_state.diet_step == 1:
 
-        st.subheader("Enter Your Weight")
-
         weight = st.number_input(
-            "Weight (kg)",
-            min_value=1.0
+            "Enter Weight (kg)",
+            min_value=1.0,
+            value=60.0
         )
 
-        if st.button("Next"):
+        if st.button("Next ➡️"):
             st.session_state.diet_weight = weight
             st.session_state.diet_step = 2
             st.rerun()
@@ -449,14 +450,13 @@ elif menu == "🥗  Diet Coach":
     # STEP 2
     elif st.session_state.diet_step == 2:
 
-        st.subheader("Enter Your Height")
-
         height = st.number_input(
-            "Height (cm)",
-            min_value=50.0
+            "Enter Height (cm)",
+            min_value=50.0,
+            value=170.0
         )
 
-        if st.button("Next"):
+        if st.button("Next ➡️"):
             st.session_state.diet_height = height
             st.session_state.diet_step = 3
             st.rerun()
@@ -473,7 +473,7 @@ elif menu == "🥗  Diet Coach":
             ]
         )
 
-        if st.button("Generate Diet Plan"):
+        if st.button("Generate Diet Plan 🚀"):
             st.session_state.diet_goal = goal
             st.session_state.diet_step = 4
             st.rerun()
@@ -481,12 +481,14 @@ elif menu == "🥗  Diet Coach":
     # STEP 4
     elif st.session_state.diet_step == 4:
 
-        weight = st.session_state.diet_weight
-        height = st.session_state.diet_height / 100
+        weight = float(st.session_state.diet_weight)
+        height = float(st.session_state.diet_height) / 100
 
         bmi = weight / (height * height)
 
+        # BMI Category
         if bmi < 18.5:
+            category = "Underweight"
             diet = "Rice Bowl Diet"
             ingredients = [
                 "Rice",
@@ -497,6 +499,7 @@ elif menu == "🥗  Diet Coach":
             ]
 
         elif bmi > 25:
+            category = "Overweight"
             diet = "Oats Protein Diet"
             ingredients = [
                 "Oats",
@@ -507,6 +510,7 @@ elif menu == "🥗  Diet Coach":
             ]
 
         else:
+            category = "Healthy"
             diet = "Balanced Plate Diet"
             ingredients = [
                 "Rice",
@@ -517,15 +521,37 @@ elif menu == "🥗  Diet Coach":
                 "Nuts"
             ]
 
-        st.success(f"BMI: {bmi:.2f}")
-        st.write(f"### Recommended Diet: {diet}")
+        st.success("✅ Diet Plan Generated")
 
-        st.write("### Ingredients")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("⚖️ Weight", f"{weight:.1f} kg")
+
+        with col2:
+            st.metric("📏 Height", f"{height*100:.0f} cm")
+
+        st.metric(
+            label="📊 BMI Score",
+            value=f"{bmi:.2f}"
+        )
+
+        st.info(f"BMI Category: **{category}**")
+
+        st.write(f"## 🍽️ Recommended Diet: {diet}")
+
+        st.write("### 🛒 Ingredients")
+
         for item in ingredients:
             st.write(f"• {item}")
 
-        if st.button("Start Again"):
+        st.write("---")
+
+        if st.button("🔄 Start Again"):
             st.session_state.diet_step = 1
+            st.session_state.diet_weight = None
+            st.session_state.diet_height = None
+            st.session_state.diet_goal = None
             st.rerun()
 
     content_end()
