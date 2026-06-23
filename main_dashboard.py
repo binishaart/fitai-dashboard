@@ -464,10 +464,7 @@ elif menu == "💪  Gym Trainer":
     </div>
     """, unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🚀  Launch Gym Trainer"):
-        subprocess.Popen([sys.executable, "app.py"], cwd=base_path)
-        ab("✅ Camera window launched — switch to it to begin your session.", "ok")
-    content_end()
+    ab("⚠️ Gym Trainer requires local setup — camera not available on cloud.", "warn")
 
 
 # ═══════════════════════════════════════════
