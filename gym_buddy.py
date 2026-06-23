@@ -1,10 +1,14 @@
 import os
-import csv
 import random
 import re
-from datetime import datetime
-
+import csv
+from datetime import datetime, date
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import google.generativeai as genai
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 from habit_tracker import analyze_behavior
 
@@ -198,14 +202,6 @@ def log_mood(base_path, sentiment_label, score):
 # MAIN REPLY GENERATOR
 # =========================
 def generate_reply(user_text, base_path):
-    """Returns (reply_text, sentiment_label) for a given user message.
-
-    Reply category is decided purely by keyword/intent matching — predictable
-    and easy to debug. Sentiment is still computed and logged (for the mood
-    history), but it no longer picks the reply category on its own, since
-    that caused short/ambiguous messages (e.g. "thank you", "yes") to be
-    misclassified.
-    """
 
     sentiment_label, score = detect_sentiment(user_text)
     intent = detect_intent(user_text)
@@ -214,49 +210,94 @@ def generate_reply(user_text, base_path):
 
     behavior = analyze_behavior(base_path)
 
+    # =========================
+    # FAST RULE-BASED REPLIES
+    # =========================
+
     if intent == "greeting":
-        reply = random.choice(GREETINGS)
+        return random.choice(GREETINGS), sentiment_label
 
     elif intent == "thanks":
-        reply = random.choice(THANKS_REPLIES)
+        return random.choice(THANKS_REPLIES), sentiment_label
 
     elif intent == "affirmative":
-        reply = random.choice(AFFIRMATIVE_REPLIES)
+        return random.choice(AFFIRMATIVE_REPLIES), sentiment_label
 
     elif intent == "long_break":
-        reply = random.choice(LONG_BREAK_REPLIES)
+        return random.choice(LONG_BREAK_REPLIES), sentiment_label
 
     elif intent == "discouraged":
+
         reply = random.choice(DISCOURAGED_REPLIES)
 
         if behavior.get("status") == "high_risk":
             reply += (
-                f" Btw, {behavior['days_since_last']} din ho gaye last workout ko — "
-                f"ek chhota session try kar le aaj? 👀"
+                f" Btw, {behavior['days_since_last']} din ho gaye "
+                f"last workout ko — ek chhota session try kar le aaj? 💪"
             )
 
+        return reply, sentiment_label
+
     elif intent == "motivation_request":
-        reply = random.choice(MOTIVATION_QUOTES)
+        return random.choice(MOTIVATION_QUOTES), sentiment_label
 
     elif intent == "achievement":
-        reply = random.choice(ACHIEVEMENT_REPLIES)
+        return random.choice(ACHIEVEMENT_REPLIES), sentiment_label
 
     elif intent == "bicep_exercise":
-        reply = random.choice(BICEP_REPLIES)
+        return random.choice(BICEP_REPLIES), sentiment_label
 
     elif intent == "squat_exercise":
-        reply = random.choice(SQUAT_REPLIES)
+        return random.choice(SQUAT_REPLIES), sentiment_label
 
     elif intent == "workout_question":
-        reply = random.choice(WORKOUT_TIP_REPLIES)
+        return random.choice(WORKOUT_TIP_REPLIES), sentiment_label
 
     elif intent == "diet_question":
-        reply = random.choice(DIET_REDIRECT)
+        return random.choice(DIET_REDIRECT), sentiment_label
 
     elif intent == "farewell":
-        reply = random.choice(FAREWELL_REPLIES)
+        return random.choice(FAREWELL_REPLIES), sentiment_label
 
-    else:
-        reply = random.choice(GENERIC_REPLIES)
+    # =========================
+    # GEMINI AI FALLBACK
+    # =========================
 
-    return reply, sentiment_label
+    prompt = f"""
+    You are FitAI Gym Buddy.
+
+    User Message:
+    {user_text}
+
+    User Sentiment:
+    {sentiment_label}
+
+    Workout Behaviour:
+    {behavior}
+
+    Rules:
+    - Reply in friendly Hinglish.
+    - Maximum 100 words.
+    - Motivate the user.
+    - Help with fitness questions.
+    - If user asks diet questions, suggest Diet Coach.
+    - Never give medical advice.
+    """
+
+    try:
+
+        response = model.generate_content(prompt)
+
+        if response and response.text:
+            return response.text.strip(), sentiment_label
+
+        return random.choice(GENERIC_REPLIES), sentiment_label
+
+    except Exception as e:
+
+        print("Gemini Error:", e)
+
+        return (
+            "⚠️ AI service temporarily unavailable. Please try again.",
+            sentiment_label
+        )
