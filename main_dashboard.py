@@ -1,16 +1,17 @@
 import streamlit as st
-import subprocess
-import sys
 import os
 import csv
 import time
-import webbrowser
 from streamlit_autorefresh import st_autorefresh
 from habit_tracker import analyze_behavior
 from gym_buddy import generate_reply
 from smart_gym import get_sensor_readings, analyze_sensors, log_iot_session
 from pose_analyzer import weekly_report
 from gym_recommender import recommend
+
+# ─── Detect if running on Streamlit Cloud ───
+IS_CLOUD = os.environ.get("STREAMLIT_SHARING_MODE") is not None or \
+           os.environ.get("HOME", "") == "/home/appuser"
 
 st.set_page_config(
     page_title="FitAI · Intelligence Platform",
@@ -68,113 +69,59 @@ html, body { background:#060B18; color:#E2E8F0; }
     color: #818CF8 !important;
     border-color: rgba(99,102,241,0.3) !important;
 }
-
-/* Hide radio indicator dot only */
-[data-testid="stSidebar"] .stRadio input[type="radio"] {
-    display: none !important;
-}
+[data-testid="stSidebar"] .stRadio input[type="radio"] { display: none !important; }
 [data-testid="stSidebar"] .stRadio [data-baseweb="radio"] > div:first-child {
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    visibility: hidden !important; width: 0 !important; height: 0 !important;
+    margin: 0 !important; padding: 0 !important;
 }
 
 /* HERO SECTION */
 .hero {
-    width: 100%;
-    height: 260px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: flex-end;
-    padding: 2rem 2.5rem;
-    margin-bottom: 0;
+    width: 100%; height: 260px; position: relative; overflow: hidden;
+    display: flex; align-items: flex-end; padding: 2rem 2.5rem; margin-bottom: 0;
 }
 .hero-img {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    filter: brightness(0.35) saturate(1.2);
-    transform: scale(1.03);
-    transition: transform 8s ease;
+    position: absolute; inset: 0; background-size: cover;
+    background-position: center; filter: brightness(0.35) saturate(1.2);
+    transform: scale(1.03); transition: transform 8s ease;
 }
 .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to top,
-        rgba(6,11,24,1) 0%,
-        rgba(6,11,24,0.7) 40%,
-        rgba(6,11,24,0.2) 100%
-    );
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(6,11,24,1) 0%, rgba(6,11,24,0.7) 40%, rgba(6,11,24,0.2) 100%);
 }
 .hero-content { position: relative; z-index: 2; }
 .hero-eyebrow {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #818CF8;
-    margin-bottom: 0.4rem;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: #818CF8; margin-bottom: 0.4rem;
 }
 .hero-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3.8rem;
-    color: #FFFFFF;
-    letter-spacing: 2px;
-    line-height: 0.95;
-    margin-bottom: 0.5rem;
+    font-family: 'Bebas Neue', sans-serif; font-size: 3.8rem; color: #FFFFFF;
+    letter-spacing: 2px; line-height: 0.95; margin-bottom: 0.5rem;
     text-shadow: 0 2px 20px rgba(0,0,0,0.5);
 }
-.hero-sub {
-    font-size: 0.82rem;
-    color: #94A3B8;
-    font-weight: 400;
-    max-width: 500px;
-    line-height: 1.5;
-}
+.hero-sub { font-size: 0.82rem; color: #94A3B8; font-weight: 400; max-width: 500px; line-height: 1.5; }
 
 /* CONTENT AREA */
 .content { padding: 1.8rem 2.5rem 3rem; }
 
 /* SECTION LABEL */
 .sec-label {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #94A3B8;
-    margin-bottom: 0.9rem;
-    margin-top: 1.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: #94A3B8; margin-bottom: 0.9rem; margin-top: 1.8rem;
+    display: flex; align-items: center; gap: 0.6rem;
 }
 .sec-label::before { content:''; width:20px; height:1px; background:#6366F1; }
 .sec-label::after  { content:''; flex:1; height:1px; background:rgba(255,255,255,0.04); }
 
 /* METRIC CARDS */
 .mc {
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 1.1rem 1.25rem;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.22s ease;
-    height: 100%;
+    background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px; padding: 1.1rem 1.25rem; position: relative;
+    overflow: hidden; transition: all 0.22s ease; height: 100%;
 }
 .mc::before {
-    content:'';
-    position:absolute;
-    top:0; left:0; right:0;
-    height:2px;
-    background: linear-gradient(90deg,#6366F1,#06B6D4);
-    opacity: 0;
-    transition: opacity 0.22s;
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg,#6366F1,#06B6D4); opacity: 0; transition: opacity 0.22s;
 }
 .mc:hover { border-color:rgba(99,102,241,0.3); transform:translateY(-2px); box-shadow:0 12px 36px rgba(0,0,0,0.4); }
 .mc:hover::before { opacity:1; }
@@ -185,15 +132,9 @@ html, body { background:#060B18; color:#E2E8F0; }
 /* ALERT BOXES */
 .ab {
     display:flex; align-items:flex-start; gap:0.75rem;
-    background:rgba(15,23,42,0.8);
-    border:1px solid rgba(255,255,255,0.07);
-    border-left:3px solid #6366F1;
-    border-radius:0 10px 10px 0;
-    padding:0.8rem 1rem;
-    font-size:0.84rem;
-    color:#94A3B8;
-    margin:0.4rem 0;
-    line-height:1.6;
+    background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.07);
+    border-left:3px solid #6366F1; border-radius:0 10px 10px 0;
+    padding:0.8rem 1rem; font-size:0.84rem; color:#94A3B8; margin:0.4rem 0; line-height:1.6;
 }
 .ab-ok   { border-left-color:#10B981; color:#6EE7B7; background:rgba(16,185,129,0.06); }
 .ab-warn { border-left-color:#F59E0B; color:#FCD34D; background:rgba(245,158,11,0.06); }
@@ -201,11 +142,8 @@ html, body { background:#060B18; color:#E2E8F0; }
 
 /* GLASS CARD */
 .glass {
-    background:rgba(15,23,42,0.85);
-    border:1px solid rgba(255,255,255,0.07);
-    border-radius:16px;
-    padding:1.4rem 1.6rem;
-    backdrop-filter:blur(12px);
+    background:rgba(15,23,42,0.85); border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:1.4rem 1.6rem; backdrop-filter:blur(12px);
     position:relative; overflow:hidden;
 }
 .glass::after {
@@ -215,13 +153,9 @@ html, body { background:#060B18; color:#E2E8F0; }
 
 /* BADGE */
 .badge {
-    display:inline-block;
-    font-size:0.65rem; font-weight:700; letter-spacing:1.5px;
-    text-transform:uppercase;
-    padding:0.25rem 0.7rem;
-    border-radius:20px;
-    border:1px solid;
-    margin-bottom:0.5rem;
+    display:inline-block; font-size:0.65rem; font-weight:700; letter-spacing:1.5px;
+    text-transform:uppercase; padding:0.25rem 0.7rem; border-radius:20px;
+    border:1px solid; margin-bottom:0.5rem;
 }
 .badge-indigo { color:#818CF8; border-color:#6366F120; background:#6366F110; }
 .badge-green  { color:#34D399; border-color:#10B98120; background:#10B98110; }
@@ -231,8 +165,7 @@ html, body { background:#060B18; color:#E2E8F0; }
 /* PULSE DOT */
 .pdot {
     display:inline-block; width:7px; height:7px; border-radius:50%;
-    vertical-align:middle; margin-right:5px;
-    animation: pp 2s ease-in-out infinite;
+    vertical-align:middle; margin-right:5px; animation: pp 2s ease-in-out infinite;
 }
 .pdot-g { background:#10B981; }
 .pdot-y { background:#F59E0B; }
@@ -243,10 +176,9 @@ html, body { background:#060B18; color:#E2E8F0; }
 /* BUTTONS */
 .stButton>button {
     background:linear-gradient(135deg,#6366F1,#4F46E5) !important;
-    color:#fff !important; border:none !important;
-    border-radius:10px !important; padding:0.55rem 1.6rem !important;
-    font-weight:600 !important; font-size:0.84rem !important;
-    box-shadow:0 4px 18px rgba(99,102,241,0.35) !important;
+    color:#fff !important; border:none !important; border-radius:10px !important;
+    padding:0.55rem 1.6rem !important; font-weight:600 !important;
+    font-size:0.84rem !important; box-shadow:0 4px 18px rgba(99,102,241,0.35) !important;
     transition:all 0.2s !important; letter-spacing:0.3px !important;
 }
 .stButton>button:hover {
@@ -261,15 +193,12 @@ html, body { background:#060B18; color:#E2E8F0; }
 [data-testid="stDataFrame"]   { border:1px solid rgba(255,255,255,0.06) !important; border-radius:12px !important; }
 [data-testid="stChatMessage"] { background:rgba(15,23,42,0.8) !important; border:1px solid rgba(255,255,255,0.06) !important; border-radius:12px !important; }
 [data-testid="stExpander"]    { background:rgba(15,23,42,0.7) !important; border:1px solid rgba(255,255,255,0.06) !important; border-radius:12px !important; }
-/* Hide ALL possible expander toggle icon leakage */
 [data-testid="stExpander"] summary [data-testid="stExpanderToggleIcon"] { display:none !important; }
 [data-testid="stExpander"] summary svg { display:none !important; }
 [data-testid="stExpander"] summary > div:last-child { display:none !important; }
-[data-testid="stExpander"] details summary div[class*="streamlit-expanderHeader"] svg { display:none !important; }
 [data-testid="stProgressBar"] > div { background:rgba(99,102,241,0.15) !important; border-radius:99px !important; }
 [data-testid="stProgressBar"] > div > div { background:linear-gradient(90deg,#6366F1,#06B6D4) !important; border-radius:99px !important; box-shadow:0 0 10px #6366F166 !important; }
 .stSlider [data-baseweb="slider"] div { background:linear-gradient(90deg,#6366F1,#06B6D4) !important; }
-
 div[data-baseweb="notification"] { display:none !important; }
 </style>
 """, unsafe_allow_html=True)
@@ -279,13 +208,13 @@ div[data-baseweb="notification"] { display:none !important; }
 # SIDEBAR
 # ─────────────────────────────────────────────
 HEROES = {
-    "🏠  Overview":       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80",
-    "💪  Gym Trainer":    "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1600&q=80",
-    "🥗  Diet Coach":     "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1600&q=80",
-    "🤖  Gym Buddy":      "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80",
-    "🏗️  Smart Gym · IoT":"https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80",
-    "📊  Performance":    "https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1600&q=80",
-    "🏆  Recommender":    "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1600&q=80",
+    "🏠  Overview":        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80",
+    "💪  Gym Trainer":     "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1600&q=80",
+    "🥗  Diet Coach":      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1600&q=80",
+    "🤖  Gym Buddy":       "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80",
+    "🏗️  Smart Gym · IoT": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80",
+    "📊  Performance":     "https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1600&q=80",
+    "🏆  Recommender":     "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1600&q=80",
 }
 
 with st.sidebar:
@@ -348,11 +277,6 @@ def hero(eyebrow, title, sub):
 def sec(label):
     st.markdown(f"<div class='sec-label'>{label}</div>", unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────
-# FIX: mc4 now renders each card in its own
-# st.column so emojis / long strings never
-# cause Streamlit to truncate and dump raw HTML
-# ─────────────────────────────────────────────
 def mc4(items):
     cols = st.columns(len(items))
     for col, (lbl, val, sub) in zip(cols, items):
@@ -369,9 +293,6 @@ def ab(text, kind=""):
     cls = {"ok":"ab ab-ok","warn":"ab ab-warn","bad":"ab ab-bad"}.get(kind,"ab")
     dot = {"ok":"pdot pdot-g","warn":"pdot pdot-y","bad":"pdot pdot-r"}.get(kind,"pdot pdot-b")
     st.markdown(f"<div class='{cls}'><span class='{dot}'></span><span>{text}</span></div>", unsafe_allow_html=True)
-
-def wrap(content):
-    st.markdown(f"<div class='content'>{content}</div>", unsafe_allow_html=True)
 
 def content_start():
     st.markdown("<div class='content'>", unsafe_allow_html=True)
@@ -416,9 +337,9 @@ if menu == "🏠  Overview":
             ])
             st.markdown(f"<div style='color:#64748B;font-size:0.7rem;margin-top:-0.3rem;'>⏱ {last.get('Date','')}</div>", unsafe_allow_html=True)
         else:
-            ab("No workouts yet — start a Gym Trainer session.")
+            ab("No workouts yet — start a Gym Trainer session locally.")
     else:
-        ab("No workouts yet — start a Gym Trainer session.")
+        ab("No workouts yet — start a Gym Trainer session locally.")
 
     sec("BEHAVIORAL AI · HABIT TRACKER")
     behavior = analyze_behavior(base_path)
@@ -452,7 +373,7 @@ elif menu == "💪  Gym Trainer":
          "MediaPipe pose detection · Real-time rep counting · Form correction feedback")
 
     content_start()
-    sec("QUICK CONTROLS")
+    sec("HOW IT WORKS")
     st.markdown("""
     <div class="glass">
         <div style="display:flex;flex-wrap:wrap;gap:2rem;">
@@ -463,29 +384,150 @@ elif menu == "💪  Gym Trainer":
         </div>
     </div>
     """, unsafe_allow_html=True)
+
     st.markdown("<br>", unsafe_allow_html=True)
-    ab("⚠️ Gym Trainer requires local setup — camera not available on cloud.", "warn")
+
+    if IS_CLOUD:
+        ab("🎥 Camera-based Gym Trainer requires local setup — <b>run app.py on your machine</b> to use this module. All other 6 modules work live here!", "warn")
+        st.markdown("""
+        <div class="glass" style="margin-top:1rem;">
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:#E2E8F0;margin-bottom:0.5rem;">Run Locally</div>
+            <div style="color:#94A3B8;font-size:0.84rem;line-height:1.8;">
+                1. Clone the repo from GitHub<br>
+                2. Run: <span style="color:#818CF8;font-family:monospace;">pip install mediapipe opencv-python</span><br>
+                3. Run: <span style="color:#818CF8;font-family:monospace;">python app.py</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        import subprocess, sys
+        ab("⚠️ Gym Trainer requires local setup — camera not available on cloud.", "warn")
+
+    content_end()
 
 
 # ═══════════════════════════════════════════
-# DIET CHATBOT
+# DIET COACH
 # ═══════════════════════════════════════════
 elif menu == "🥗  Diet Coach":
 
-    hero("MODULE 2 · NLP",
-         "AI DIET COACH",
-         "BMI-based meal planning · Calorie tracking · Grocery lists · Nutritional guidance")
+    hero(
+        "MODULE 2 · NLP",
+        "AI DIET COACH",
+        "BMI-based meal planning · Calorie tracking · Grocery lists · Nutritional guidance"
+    )
 
     content_start()
-    sec("LAUNCH CHATBOT")
-    ab("Opens in a new browser tab at <b>localhost:8502</b> — keep this dashboard tab open.")
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🍎  Open Diet Chatbot"):
-        diet_path = os.path.join(base_path, "diet_chatbot.py")
-        subprocess.Popen([sys.executable,"-m","streamlit","run",diet_path,
-                          "--server.port=8502","--server.headless=true"], cwd=base_path)
-        webbrowser.open("http://localhost:8502")
-        ab("✅ Diet Chatbot is opening — check your browser.", "ok")
+
+    if "diet_step" not in st.session_state:
+        st.session_state.diet_step = 1
+
+    if "diet_weight" not in st.session_state:
+        st.session_state.diet_weight = None
+
+    if "diet_height" not in st.session_state:
+        st.session_state.diet_height = None
+
+    if "diet_goal" not in st.session_state:
+        st.session_state.diet_goal = None
+
+    # STEP 1
+    if st.session_state.diet_step == 1:
+
+        st.subheader("Enter Your Weight")
+
+        weight = st.number_input(
+            "Weight (kg)",
+            min_value=1.0
+        )
+
+        if st.button("Next"):
+            st.session_state.diet_weight = weight
+            st.session_state.diet_step = 2
+            st.rerun()
+
+    # STEP 2
+    elif st.session_state.diet_step == 2:
+
+        st.subheader("Enter Your Height")
+
+        height = st.number_input(
+            "Height (cm)",
+            min_value=50.0
+        )
+
+        if st.button("Next"):
+            st.session_state.diet_height = height
+            st.session_state.diet_step = 3
+            st.rerun()
+
+    # STEP 3
+    elif st.session_state.diet_step == 3:
+
+        goal = st.selectbox(
+            "Select Goal",
+            [
+                "Weight Loss",
+                "Weight Gain",
+                "Maintain"
+            ]
+        )
+
+        if st.button("Generate Diet Plan"):
+            st.session_state.diet_goal = goal
+            st.session_state.diet_step = 4
+            st.rerun()
+
+    # STEP 4
+    elif st.session_state.diet_step == 4:
+
+        weight = st.session_state.diet_weight
+        height = st.session_state.diet_height / 100
+
+        bmi = weight / (height * height)
+
+        if bmi < 18.5:
+            diet = "Rice Bowl Diet"
+            ingredients = [
+                "Rice",
+                "Milk",
+                "Banana",
+                "Peanut Butter",
+                "Almonds"
+            ]
+
+        elif bmi > 25:
+            diet = "Oats Protein Diet"
+            ingredients = [
+                "Oats",
+                "Eggs",
+                "Paneer",
+                "Vegetables",
+                "Fruits"
+            ]
+
+        else:
+            diet = "Balanced Plate Diet"
+            ingredients = [
+                "Rice",
+                "Milk",
+                "Eggs",
+                "Fruits",
+                "Vegetables",
+                "Nuts"
+            ]
+
+        st.success(f"BMI: {bmi:.2f}")
+        st.write(f"### Recommended Diet: {diet}")
+
+        st.write("### Ingredients")
+        for item in ingredients:
+            st.write(f"• {item}")
+
+        if st.button("Start Again"):
+            st.session_state.diet_step = 1
+            st.rerun()
+
     content_end()
 
 
@@ -546,16 +588,16 @@ elif menu == "🏗️  Smart Gym · IoT":
 
         sec("LIVE SENSOR READINGS")
         mc4([
-            ("❤️  Heart Rate",  f"{readings['heart_rate']} bpm",     readings["timestamp"][:10]),
-            ("🏋️  Resistance",  f"{readings['resistance_kg']} kg",   "smart equipment"),
-            ("🌡️  Equip Temp",  f"{readings['equipment_temp_c']}°C", "thermal sensor"),
-            ("⏱️  Rest Period", f"{readings['rest_seconds']} sec",   "between sets"),
+            ("Heart Rate",   f"{readings['heart_rate']} bpm",     readings["timestamp"][:10]),
+            ("Resistance",   f"{readings['resistance_kg']} kg",   "smart equipment"),
+            ("Equip Temp",   f"{readings['equipment_temp_c']}C",  "thermal sensor"),
+            ("Rest Period",  f"{readings['rest_seconds']} sec",   "between sets"),
         ])
 
         sec("SESSION QUALITY SCORE")
         score = analysis["overall_score"]
         kind  = "ok" if score>=80 else "warn" if score>=60 else "bad"
-        label = "Excellent session 🔥" if score>=80 else "Good — push harder" if score>=60 else "Needs improvement"
+        label = "Excellent session!" if score>=80 else "Good — push harder" if score>=60 else "Needs improvement"
         ab(f"<b>{score} / 100</b> — {label}", kind)
         st.progress(score / 100)
 
@@ -584,9 +626,9 @@ elif menu == "📊  Performance":
         ab("No workout history found — complete at least one Gym Trainer session first.")
     else:
         trend_cfg = {
-            "improving": ("ok",   "📈 Performance improving week-over-week — excellent consistency!"),
-            "declining": ("warn",  "📉 Performance declining — increase session frequency."),
-            "stable":    ("",      "➡ Performance stable — aim to push intensity this week."),
+            "improving": ("ok",   "Performance improving week-over-week — excellent consistency!"),
+            "declining": ("warn", "Performance declining — increase session frequency."),
+            "stable":    ("",     "Performance stable — aim to push intensity this week."),
         }
         kind, msg = trend_cfg[report["trend"]]
         ab(msg, kind)
@@ -596,10 +638,10 @@ elif menu == "📊  Performance":
         st.bar_chart(chart_df["Avg Score"], color="#6366F1")
 
         mc4([
-            ("🏆  Best Week",      report["best_week"],             ""),
-            ("📅  Weeks Tracked",  str(len(report["weeks"])),       ""),
-            ("🏋️  Total Sessions", str(len(report["all_sessions"])), ""),
-            ("📈  Latest Score",   str(report["avg_scores"][-1]),   "/ 100"),
+            ("Best Week",      report["best_week"],              ""),
+            ("Weeks Tracked",  str(len(report["weeks"])),        ""),
+            ("Total Sessions", str(len(report["all_sessions"])), ""),
+            ("Latest Score",   str(report["avg_scores"][-1]),    "/ 100"),
         ])
 
         sec("SESSION LOG")
@@ -625,9 +667,9 @@ elif menu == "🏆  Recommender":
     level  = result["level"]
 
     badge_cfg = {
-        "beginner":     ("badge badge-green",  "Beginner"),
-        "intermediate": ("badge badge-amber",  "Intermediate"),
-        "advanced":     ("badge badge-red",    "Advanced"),
+        "beginner":     ("badge badge-green", "Beginner"),
+        "intermediate": ("badge badge-amber", "Intermediate"),
+        "advanced":     ("badge badge-red",   "Advanced"),
     }
     badge_cls, badge_lbl = badge_cfg[level]
 
@@ -640,10 +682,10 @@ elif menu == "🏆  Recommender":
     """, unsafe_allow_html=True)
 
     mc4([
-        ("Fitness Level",      level.capitalize(),                    "AI detected"),
-        ("Favourite Exercise", result["favourite_ex"],                "from history"),
-        ("Program",            result["program"]["label"][:20]+"…",   "recommended"),
-        ("Gyms Found",         str(len(result["gyms"])),              "near you"),
+        ("Fitness Level",      level.capitalize(),                  "AI detected"),
+        ("Fav Exercise",       result["favourite_ex"],              "from history"),
+        ("Program",            result["program"]["label"][:20]+"…", "recommended"),
+        ("Gyms Found",         str(len(result["gyms"])),            "near you"),
     ])
 
     sec("RECOMMENDED WORKOUT PROGRAM")
@@ -658,7 +700,7 @@ elif menu == "🏆  Recommender":
             color:#E2E8F0;margin-bottom:0.25rem;">{prog['label']}</div>
         <div style="color:#94A3B8;font-size:0.8rem;margin-bottom:1rem;">{prog['description']}</div>
         {schedule_html}
-        <div class="ab ab-ok" style="margin-top:0.7rem;">🏅 <b>Challenge:</b> {prog['challenge']}</div>
+        <div class="ab ab-ok" style="margin-top:0.7rem;"> <b>Challenge:</b> {prog['challenge']}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -668,12 +710,18 @@ elif menu == "🏆  Recommender":
         <div class="glass" style="margin-bottom:0.8rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
                 <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:#E2E8F0;">{gym['name']}</div>
-                <div style="font-size:0.75rem;color:#FCD34D;font-weight:600;">⭐ {gym['rating']} / 5</div>
+                <div style="font-size:0.75rem;color:#FCD34D;font-weight:600;">&#11088; {gym['rating']} / 5</div>
             </div>
             <div style="font-size:0.78rem;color:#94A3B8;margin-bottom:0.8rem;">📍 {gym['location']}</div>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
-                <div><div style="font-size:0.6rem;color:#94A3B8;letter-spacing:1.5px;text-transform:uppercase;">Monthly</div><div style="font-size:0.9rem;color:#818CF8;font-weight:600;">{gym['fee']}</div></div>
-                <div><div style="font-size:0.6rem;color:#94A3B8;letter-spacing:1.5px;text-transform:uppercase;">Specialty</div><div style="font-size:0.9rem;color:#CBD5E1;">{', '.join(gym['specialty'])}</div></div>
+                <div>
+                    <div style="font-size:0.6rem;color:#94A3B8;letter-spacing:1.5px;text-transform:uppercase;">Monthly</div>
+                    <div style="font-size:0.9rem;color:#818CF8;font-weight:600;">{gym['fee']}</div>
+                </div>
+                <div>
+                    <div style="font-size:0.6rem;color:#94A3B8;letter-spacing:1.5px;text-transform:uppercase;">Specialty</div>
+                    <div style="font-size:0.9rem;color:#CBD5E1;">{', '.join(gym['specialty'])}</div>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
