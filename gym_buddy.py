@@ -295,9 +295,7 @@ def generate_reply(user_text, base_path):
 
     except Exception as e:
 
-        print("Gemini Error:", e)
-
         return (
-            "⚠️ AI service temporarily unavailable. Please try again.",
+            f"Gemini Error: {str(e)}",
             sentiment_label
-        )
+    )
