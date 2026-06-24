@@ -4,7 +4,7 @@ import re
 import csv
 from datetime import datetime, date
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import google.generativeai as genai
+from google import genai
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
