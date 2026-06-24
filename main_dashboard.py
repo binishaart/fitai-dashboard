@@ -299,7 +299,7 @@ if menu == "🏠  Overview":
 
     st_autorefresh(interval=15000, key="home_refresh")
 
-    hero("AI FITNESS INTELLIGENCE PLATFORM",
+    hero("",
          "YOUR DASHBOARD",
          "Behavioral AI · Computer Vision · IoT Integration · NLP · Personalized Coaching")
 
@@ -359,7 +359,7 @@ if menu == "🏠  Overview":
 # ═══════════════════════════════════════════
 elif menu == "💪  Gym Trainer":
 
-    hero("MODULE 1 · COMPUTER VISION",
+    hero("",
          "AI GYM TRAINER",
          "MediaPipe pose detection · Real-time rep counting · Form correction feedback")
 
@@ -403,7 +403,7 @@ elif menu == "💪  Gym Trainer":
 elif menu == "🥗  Diet Coach":
 
     hero(
-        "MODULE 2 · NLP",
+        "",
         "AI DIET COACH",
         "BMI-based meal planning · Calorie tracking · Grocery lists · Nutritional guidance"
     )
@@ -553,7 +553,7 @@ elif menu == "🥗  Diet Coach":
 # ═══════════════════════════════════════════
 elif menu == "🤖  Gym Buddy":
 
-    hero("MODULE 5 · CONVERSATIONAL AI",
+    hero("",
          "VIRTUAL GYM BUDDY",
          "Sentiment analysis · Emotional state tracking · Motivational AI companion")
 
@@ -584,7 +584,7 @@ elif menu == "🤖  Gym Buddy":
 # ═══════════════════════════════════════════
 elif menu == "🏗️  Smart Gym · IoT":
 
-    hero("MODULE 3 · AI + IoT INTEGRATION",
+    hero("",
          "SMART GYM ASSISTANT",
          "Live equipment monitoring · Adaptive resistance · Heart rate analysis · Session scoring")
 
@@ -630,7 +630,7 @@ elif menu == "🏗️  Smart Gym · IoT":
 # ═══════════════════════════════════════════
 elif menu == "📊  Performance":
 
-    hero("MODULE 6 · MOTION EFFICIENCY",
+    hero("",
          "POSE-TO-PERFORMANCE",
          "Performance scoring · Weekly progress reports · Trend analysis · Session history")
 
@@ -674,7 +674,7 @@ elif menu == "📊  Performance":
 # ═══════════════════════════════════════════
 elif menu == "🏆  Recommender":
 
-    hero("MODULE 7 · RECOMMENDATION ENGINE",
+    hero("",
          "GYM RECOMMENDER",
          "AI fitness profiling · Personalized workout programs · Nearby gym discovery")
 
