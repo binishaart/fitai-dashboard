@@ -48,7 +48,7 @@ html, body { background:#060B18; color:#E2E8F0; }
 [data-testid="stSidebar"] .stRadio > label { display:none; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap:2px; display:flex; flex-direction:column; padding-bottom:8px !important; }
 [data-testid="stSidebar"] .stRadio label {
-    color: #94A3B8 !important;
+    color: #475569 !important;
     font-size: 0.82rem !important;
     font-weight: 500 !important;
     padding: 0.5rem 1rem !important;
