@@ -46,7 +46,7 @@ html, body { background:#060B18; color:#E2E8F0; }
 }
 [data-testid="stSidebar"] > div { padding-top: 0 !important; }
 [data-testid="stSidebar"] .stRadio > label { display:none; }
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap:2px; display:flex; flex-direction:column; padding-bottom:140px !important; }
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] { gap:2px; display:flex; flex-direction:column; padding-bottom:8px !important; }
 [data-testid="stSidebar"] .stRadio label {
     color: #94A3B8 !important;
     font-size: 0.82rem !important;
@@ -227,10 +227,10 @@ with st.sidebar:
             <div>
                 <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;
                     color:#F1F5F9;letter-spacing:-0.3px;">FitAI</div>
-                <div style="font-size:0.58rem;color:#64748B;letter-spacing:2px;text-transform:uppercase;">Intelligence Platform</div>
+                <div style="font-size:0.58rem;color:#94A3B8;letter-spacing:2px;text-transform:uppercase;">Intelligence Platform</div>
             </div>
         </div>
-        <div style="font-size:0.6rem;color:#64748B;letter-spacing:2px;text-transform:uppercase;
+        <div style="font-size:0.6rem;color:#94A3B8;letter-spacing:2px;text-transform:uppercase;
             margin-bottom:0.5rem;padding:0 0.2rem;">Navigation</div>
     </div>
     """, unsafe_allow_html=True)
@@ -245,16 +245,7 @@ with st.sidebar:
         "🏆  Recommender",
     ], label_visibility="collapsed")
 
-    st.markdown("""
-    <div style="position:absolute;bottom:1.5rem;left:1.2rem;right:1.2rem;">
-        <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);
-            border-radius:10px;padding:0.8rem 1rem;">
-            <div style="font-size:0.6rem;color:#64748B;letter-spacing:2px;text-transform:uppercase;">Student Project</div>
-            <div style="font-size:0.78rem;color:#818CF8;font-weight:600;margin-top:2px;">AI Gym &amp; Fitness Assistant</div>
-            <div style="font-size:0.62rem;color:#64748B;margin-top:3px;">SYIT · SAKEC · 2025–26</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 
 # ─────────────────────────────────────────────
